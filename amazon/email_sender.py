@@ -14,6 +14,7 @@ class EmailSender:
         self.sender_email = sender_email
         self.receiver_email = receiver_email
         self.sender_passwd = sender_passwd
+        self.max_passwd = 0
 
     def send_email(self, asin, name, price, link):
         # restituisce un context con le impostazioni di sicurezza predefinite
@@ -41,7 +42,30 @@ class EmailSender:
             server.ehlo() # può essere omesso
             server.starttls(context = context) # funzione per criptare il messaggio
             server.ehlo()
-            server.login(self.sender_email, self.sender_passwd)
+
+            try:
+                server.login(self.sender_email, self.sender_passwd)
+
+            except smtplib.SMTPAuthenticationError:
+                while True:
+                    self.sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
+                    try:
+                        server.login(self.sender_email, self.sender_passwd)
+
+                    except smtplib.SMTPAuthenticationError:
+                        if self.max_passwd >= 3:
+                            print('wrong Password for too many times')
+                            quit()
+
+                        else:
+                            self.max_passwd += 1
+                            continue
+
+                    break
+            
             server.sendmail(self.sender_email, self.receiver_email, message)
+            print('-' * 50)
+            print('Email sent succesfully')
+            print('-' * 50)
 
 

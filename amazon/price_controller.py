@@ -18,36 +18,31 @@ os.chdir(current_path)
 
 
 class PriceController():
-    def __init__(self, name, price_treshold, receiver_email = 'ilpalbio@gmail.com'):
+    def __init__(self, name, price_treshold, sender_passwd,receiver_email = 'ilpalbio@gmail.com'):
         self.name = name
         self.price_treshold = price_treshold
         self.receiver_email = receiver_email
-        self.sender_passwd = None
+        self.sender_passwd = sender_passwd
 
     def controll_price(self):
         with open(self.name, 'r') as f:
             data = json.load(f)
             
             for product in data:
-                pr_price = float(product['price'])
+                try:
+                    pr_price = float(product['price'])
+
+                except ValueError:
+                    pr_price = int(product['price'])
+
                 pr_name = str(product['name'])
                 pr_asin = str(product['asin'])
                 pr_link = product['link']
 
                 if pr_price <= self.price_treshold + 10:
-                    # controllo se la passwd è già stata inserita
-                    if self.sender_passwd == None:
-                        self.sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
-
-                    else:
-                        pass
-
                     # controllo se la mail del destinatario è stata inserita
-                    if sys.argv[1] != None:
+                    if len(sys.argv) > 1:
                         self.receiver_email = sys.argv[1]
-
-                    else:
-                        pass
 
                     emailsender = EmailSender(
                         sender_email = '0WhoIsCandice0@gmail.com',
@@ -56,9 +51,6 @@ class PriceController():
                     )
 
                     emailsender.send_email(pr_asin, pr_name, pr_price, pr_link)
-
-                else:
-                    pass
 
     def delete_extralines(self):
         # apertura del file in lettura
@@ -77,6 +69,8 @@ class PriceController():
                 else:
                     pass
 
-price_controller = PriceController('info.json', price_treshold = 150)
+sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
+
+price_controller = PriceController('info.json', price_treshold = 150, sender_passwd = sender_passwd)
 price_controller.delete_extralines()
 price_controller.controll_price()
