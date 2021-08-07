@@ -6,10 +6,13 @@ Questo file serve a:
 # librerie
 import smtplib, ssl
 import getpass
+# librerie per migliorare le email
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 class EmailSender:
     def __init__(self, sender_email, receiver_email, sender_passwd):
-        self.port = 587
+        self.port = 465
         self.smtp_server = "smtp.gmail.com"
         self.sender_email = sender_email
         self.receiver_email = receiver_email
@@ -21,32 +24,38 @@ class EmailSender:
         context = ssl.create_default_context()
 
         # messaggio
-        message = f"""\
-            Subject: IT'S TIME TO BUY THIS PRODUCT
+        message = MIMEMultipart("alternative")
+        message['Subject'] = "IT'S TIME TO BUY THIS PRODUCT"
+        message['From'] = self.sender_email
+        message['To'] = self.receiver_email
 
+        html = f"""\
+            <html><body><p>
+            Now you can BUY {name} WITH {price} $<br>
+            
+            <br> 
+            <a href = {link}> CLICK HERE </a><br>
+            <br>
 
-            Now you can buy {name} with {price}:
+            INFORMATIONS<br>
+            - Asin = {asin}<br>
+            - Name = {name}<br>
+            - Price = {price} $<br>
+            - Link = {link}<br>
 
-            Click Here --->  {link} <---
-
-            Here there are the info:
-            - Asin = {asin}
-            - Name = {name}
-            - Price = {price} $
-            - Link = {link}
+            </p></body></html>
         """
 
+        part = MIMEText(html, 'html')
+        message.attach(part)
+
         # connessione al server SMTP
-        with smtplib.SMTP(self.smtp_server, self.port) as server:
-            # funzione per identificarsi ad un server ESMTP
-            server.ehlo() # può essere omesso
-            server.starttls(context = context) # funzione per criptare il messaggio
-            server.ehlo()
+        with smtplib.SMTP_SSL(self.smtp_server, self.port, context = context) as server:
 
             try:
                 server.login(self.sender_email, self.sender_passwd)
 
-            except smtplib.SMTPAuthenticationError:
+            except:
                 while True:
                     self.sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
                     try:
@@ -63,7 +72,7 @@ class EmailSender:
 
                     break
             
-            server.sendmail(self.sender_email, self.receiver_email, message)
+            server.sendmail(self.sender_email, self.receiver_email, message.as_string())
             print('-' * 50)
             print('Email sent succesfully')
             print('-' * 50)

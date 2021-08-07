@@ -13,18 +13,19 @@ import sys
 from email_sender import *
 
 # entrare nella directory dove si trova il file
-current_path = os.path.dirname(__file__)
+current_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_path)
 
 
 class PriceController():
-    def __init__(self, name, price_treshold, sender_passwd,receiver_email = 'ilpalbio@gmail.com'):
+    def __init__(self, name, sender_passwd):
         self.name = name
-        self.price_treshold = price_treshold
-        self.receiver_email = receiver_email
+        self.price_treshold = None
+        self.receiver_email = None
         self.sender_passwd = sender_passwd
 
     def controll_price(self):
+        self.extract_emaildata()
         with open(self.name, 'r') as f:
             data = json.load(f)
             
@@ -55,22 +56,30 @@ class PriceController():
     def delete_extralines(self):
         # apertura del file in lettura
         with open(self.name, 'r') as f:
-            lines = f.readlines()
+            data = json.load(f)
+
+            for i in range(len(data)):
+                if i >= len(data) - 1:
+                    pass
+
+                else:
+                    if data[i]['asin'] == data[i + 1]['asin']:
+                        del data[i]
 
         # apertura del file in scrittura
         with open(self.name, 'w') as f:
-            for number, line in enumerate(lines):
-                if line.strip("\n") == '[' or line.strip("\n") == ']':
-                    f.write(line)
+          data = json.dump(data, f)
 
-                elif number % 2 == 0:
-                    f.write(line)
-
-                else:
-                    pass
+    def extract_emaildata(self):
+        with open('pcontroller_setting.json', 'r') as f:
+            data = json.load(f)
+        for e in data:
+            self.price_treshold = e['price_treshold']
+            self.receiver_email = e['receiver_email']
+            
 
 sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
 
-price_controller = PriceController('info.json', price_treshold = 150, sender_passwd = sender_passwd)
+price_controller = PriceController('info.json', sender_passwd = sender_passwd)
 price_controller.delete_extralines()
 price_controller.controll_price()
