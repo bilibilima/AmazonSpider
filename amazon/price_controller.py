@@ -9,12 +9,11 @@ Questo file serve a:
 import json
 import os
 import getpass
-import sys
 from email_sender import *
 
 # entrare nella directory dove si trova il file
 current_path = os.path.dirname(os.path.abspath(__file__))
-os.chdir(current_path)
+os.chdir(current_path + "/.data")
 
 
 class PriceController():
