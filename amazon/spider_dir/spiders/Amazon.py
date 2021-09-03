@@ -3,9 +3,16 @@ from scrapy.spiders import Spider
 from urllib.parse import urlencode
 from amazon.items import AmazonItem
 from itemloaders import ItemLoader
+import json
+import os
+
 
 # parola chiave da cercare
-query = 'monitor 144hz'
+with open('.data/pcontroller_setting.json', 'r') as f:
+    json_obj = json.load(f)
+
+query = json_obj['product']
+
 
 class AmazonSpider(Spider):
     name = 'Amazon'

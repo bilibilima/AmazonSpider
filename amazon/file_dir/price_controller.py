@@ -10,18 +10,18 @@ import json
 import os
 import getpass
 from email_sender import *
-
-# entrare nella directory dove si trova il file
-current_path = os.path.dirname(os.path.abspath(__file__))
-os.chdir(current_path + "/.data")
-
+from cryptography.fernet import Fernet
 
 class PriceController():
-    def __init__(self, name, sender_passwd):
-        self.name = name
+    def __init__(self, sender_passwd):
+        self.name = 'info.json'
         self.price_treshold = None
         self.receiver_email = None
         self.sender_passwd = sender_passwd
+
+        # entrare nella cartella .data
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        os.chdir('../.data')
 
     def controll_price(self):
         self.extract_emaildata()
@@ -39,11 +39,7 @@ class PriceController():
                 pr_asin = str(product['asin'])
                 pr_link = product['link']
 
-                if pr_price <= self.price_treshold + 10:
-                    # controllo se la mail del destinatario è stata inserita
-                    if len(sys.argv) > 1:
-                        self.receiver_email = sys.argv[1]
-
+                if pr_price <= self.price_treshold:
                     emailsender = EmailSender(
                         sender_email = '0WhoIsCandice0@gmail.com',
                         receiver_email = self.receiver_email,
@@ -70,15 +66,16 @@ class PriceController():
           data = json.dump(data, f)
 
     def extract_emaildata(self):
+        # entrare nella cartella .data
         with open('pcontroller_setting.json', 'r') as f:
             data = json.load(f)
-        for e in data:
-            self.price_treshold = e['price_treshold']
-            self.receiver_email = e['receiver_email']
+
+        self.price_treshold = data['price_treshold']
+        self.receiver_email = data['receiver_email']
             
 
 sender_passwd = getpass.getpass(prompt = "Sender's Password: ")
 
-price_controller = PriceController('info.json', sender_passwd = sender_passwd)
-price_controller.delete_extralines()
+price_controller = PriceController(sender_passwd = sender_passwd)
+# price_controller.delete_extralines()
 price_controller.controll_price()

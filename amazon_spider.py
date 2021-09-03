@@ -23,9 +23,20 @@ class AmazonSpider:
             with open(self.file_name, 'w') as f:
                 json_dump = json.dump(pcontroller_info, f)
             
-            # uscita dalla cartella
+            # uscita dalla cartella .data
             os.chdir('..')
 
+            # avvio dello spider per controllare i prezzi attuali
+            os.chdir('spider_dir')
+            os.system('scrapy crawl Amazon -O info.json')
+            os.chdir('..')
+
+            print()
+            # esecuzione del controllo prezzi
+            os.chdir('file_dir')
+            os.system('python3 price_controller.py')
+            os.chdir('..')
+            
         else:
             os.chdir('amazon')
             # rimozione della cartella
