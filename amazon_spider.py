@@ -8,13 +8,16 @@ import shutil
 class AmazonSpider:
     def __init__(self):
         self.current_path = os.path.dirname(os.path.abspath(__file__))
-        self.data_path = self.current_path + '/amazon/.data/'
         self.file_name = 'pcontroller_setting.json'
+
+        # entrata nella cartella amazon
+        os.chdir(self.current_path + '/amazon/')
 
     def controll_product(self, product, treshold, email_receiver):
         # controllo dell'esistenza della cartella .data
-        if not os.path.exists(self.data_path):
-            os.chdir('amazon')
+        if not os.path.exists('.data'):
+            print('La cartella .data non esiste')
+            print()
             os.mkdir('.data')
             os.chdir('.data')
             
@@ -27,32 +30,28 @@ class AmazonSpider:
             os.chdir('..')
 
             # avvio dello spider per controllare i prezzi attuali
-            os.chdir('spider_dir')
-            os.system('scrapy crawl Amazon -O info.json')
-            os.chdir('..')
+            os.system('scrapy crawl Amazon -O .data/info.json')
 
-            print()
             # esecuzione del controllo prezzi
-            os.chdir('file_dir')
-            os.system('python3 price_controller.py')
-            os.chdir('..')
+            os.system('python3 file_dir/price_controller.py')
             
         else:
-            os.chdir('amazon')
             # rimozione della cartella
             shutil.rmtree('.data')
-            os.chdir(self.current_path)
             self.controll_product(product, treshold, email_receiver)
+    # alla fine del metodo controll_product() la cartella è amazon
 
-        os.chdir(self.current_path)
     # metodo per creare un file .sh da eseguire ogni volta che il pc si accende
     def _create_shfile(self):
         pass
 
     # metodo per modificare un valore
     def change_value(self, new_value, key):
-        if os.path.exists(self.data_path) and os.path.isfile(self.data_path + self.file_name):
-            os.chdir(self.data_path)
+        if not os.path.exists('.data') and not os.path.isfile('.data/' + self.file_name):
+            print('Bisogna prima scegliere un prodotto da controllare')
+
+        else:
+            os.chdir('.data')
             # modifica del valore
             with open(self.file_name, 'r') as f:
                 json_obj = json.load(f)
@@ -61,10 +60,8 @@ class AmazonSpider:
             with open(self.file_name, 'w') as f:
                 json.dump(json_obj, f)
 
-        else:
-            print('Bisogna prima scegliere un prodotto da controllare')
-        
-        os.chdir(self.current_path)
+            os.chdir('..')
+    # alla fine del metodo change_value() la cartella è amazon
 
 # funzione per pulire il terminale
 def clear_screen():

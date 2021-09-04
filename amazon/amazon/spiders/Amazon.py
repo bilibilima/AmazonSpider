@@ -4,7 +4,6 @@ from urllib.parse import urlencode
 from amazon.items import AmazonItem
 from itemloaders import ItemLoader
 import json
-import os
 
 
 # parola chiave da cercare
