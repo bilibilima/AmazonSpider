@@ -34,6 +34,9 @@ class AmazonSpider:
 
             # esecuzione del controllo prezzi
             os.system('python3 file_dir/price_controller.py')
+
+            # creazione del file per l esecuzione giornaliera dello spider
+            self._create_pyfile()
             
         else:
             # rimozione della cartella
@@ -41,9 +44,29 @@ class AmazonSpider:
             self.controll_product(product, treshold, email_receiver)
     # alla fine del metodo controll_product() la cartella è amazon
 
-    # metodo per creare un file .sh da eseguire ogni volta che il pc si accende
-    def _create_shfile(self):
-        pass
+    # metodo per creare un file .py da eseguire ogni volta che il computer si accende
+    def _create_pyfile(self):
+        # scipt da mettere in un file py
+        script = '''\
+        
+        # librerie
+        import os
+        import scrapy
+
+        # entare nella cartella amazon
+        os.chdir(os.path.abspath(__file__) + '..')
+
+        # esecuzione dello spider
+        os.system('scrapy crawl Amazon -O .data/info.json')
+
+        # esecuzione del controllo prezzi
+        os.system('python3 file_dir/price_controller.py')    
+        '''
+
+        with open('file_dir/amazon_startup.py', 'w') as f:
+            f.write(script)
+
+    # alla fine di questo metodo la cartella è amazon
 
     # metodo per modificare un valore
     def change_value(self, new_value, key):
