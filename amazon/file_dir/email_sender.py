@@ -62,7 +62,7 @@ class EmailSender:
                         server.login(self.sender_email, self.sender_passwd)
 
                     except smtplib.SMTPAuthenticationError:
-                        if self.max_passwd >= 3:
+                        if self.max_passwd >= 2:
                             print('wrong Password for too many times')
                             quit()
 

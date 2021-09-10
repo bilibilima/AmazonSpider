@@ -4,11 +4,13 @@
 import os
 import json
 import shutil
+from crontab import CronTab
 
 class AmazonSpider:
-    def __init__(self):
+    def __init__(self, user):
         self.current_path = os.path.dirname(os.path.abspath(__file__))
         self.file_name = 'pcontroller_setting.json'
+        self.user = user
 
         # entrata nella cartella amazon
         os.chdir(self.current_path + '/amazon/')
@@ -36,7 +38,7 @@ class AmazonSpider:
             os.system('python3 file_dir/price_controller.py')
 
             # creazione del file per l esecuzione giornaliera dello spider
-            self._create_pyfile()
+            self.__create_pyfile()
             
         else:
             # rimozione della cartella
@@ -45,26 +47,50 @@ class AmazonSpider:
     # alla fine del metodo controll_product() la cartella è amazon
 
     # metodo per creare un file .py da eseguire ogni volta che il computer si accende
-    def _create_pyfile(self):
+    def __create_pyfile(self):
         # scipt da mettere in un file py
         script = '''\
-        
         # librerie
+        from datetime import datetime
         import os
         import scrapy
+        import datetime
+        from date_check import Date_Check
 
         # entare nella cartella amazon
-        os.chdir(os.path.abspath(__file__) + '..')
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        os.chdir('..')
 
-        # esecuzione dello spider
-        os.system('scrapy crawl Amazon -O .data/info.json')
+        def execute_spider():
+            # esecuzione dello spider
+            os.system('scrapy crawl Amazon -O .data/info.json')
 
-        # esecuzione del controllo prezzi
-        os.system('python3 file_dir/price_controller.py')    
+            # esecuzione del controllo prezzi
+            os.system('python3 file_dir/price_controller.py')
+
+        date_check = Date_Check(file_name = '.data/date_file.date')
+
+        # controllo della possibilità di eseguire lo spider
+        actual_date = str(datetime.date.today()).strip('\n').split('-')
+
+        date_check.check_date(date = actual_date, callback = execute_spider)
         '''
 
-        with open('file_dir/amazon_startup.py', 'w') as f:
+        with open('file_dir/crontab_file.py', 'w') as f:
             f.write(script)
+        # crezione di un nuovo crontab per eseguire lo spider ad gni boot
+        file = self.current_path +'/amazon/file_dir/crontab_file.py'
+
+        # accesso a cron
+        cron = CronTab(user = self.user)
+
+        # eliminazione di tutti i job
+        for job in cron:
+            cron.remove(job)
+
+        # aggiunta di un nuovo job
+        job = cron.new(command = f'@reboot python3 {file}')
+        cron.write()
 
     # alla fine di questo metodo la cartella è amazon
 
@@ -110,7 +136,7 @@ def controll_input(message, input_type):
 
 def main():
     clear_screen()
-    amazon_spider = AmazonSpider()
+    amazon_spider = AmazonSpider(user = 'xxx')
 
     start_message = """\
         --------------------------------------------------
